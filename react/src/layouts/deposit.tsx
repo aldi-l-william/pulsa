@@ -3,7 +3,7 @@ const Deposit = () => {
     const [saldo, useSaldo] = useState('');
 
     useEffect(() => {
-       fetch('https://api.digiflazz.com/v1/cek-saldo', {
+       fetch('https://api.mypulsa.my.id/fetch-data', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

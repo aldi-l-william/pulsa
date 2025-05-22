@@ -40,10 +40,43 @@ func main(){
 		// URL dari pihak ketiga (ganti sesuai kebutuhan)
         fullURL := fmt.Sprintf("%s/cek-saldo", baseURL)
 		// Buat HTTP GET request ke API eksternal
-		resp, err := http.Get(fullURL)
+		
+		apiSecret := os.Getenv("SECRET_API_KEY")
+		username := os.Getenv("USERNAME")
+
+		raw := username + apiSecret + "depo"
+		hash := md5.Sum([]byte(raw))
+		md5Str := hex.EncodeToString(hash[:])
+		// Buat payload JSON secara dinamis
+		payloadMap := map[string]string{
+			"cmd":      "deposit",
+			"username": username,
+			"sign":     md5Str,
+		}
+		jsonBody, err := json.Marshal(payloadMap)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Gagal fetch dari pihak ketiga",
+				"error": "Gagal membuat JSON",
+			})
+		}
+
+		// Buat request POST
+		req, err := http.NewRequest("POST", fullURL, strings.NewReader(string(jsonBody)))
+			if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Gagal membuat request POST",
+			})
+		}
+
+		// Set header (optional)
+		req.Header.Set("Content-Type", "application/json")
+
+		// Kirim request
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Gagal mengirim request POST",
 			})
 		}
 		defer resp.Body.Close()
