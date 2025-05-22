@@ -1,0 +1,78 @@
+package main
+
+import (
+    "encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
+	
+)
+
+func main(){
+
+	// Load .env
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	// Ambil base URL dari ENV
+	baseURL := os.Getenv("EXTERNAL_API_BASE_URL")
+	if baseURL == "" {
+		log.Fatal("EXTERNAL_API_BASE_URL not set in .env")
+	}
+	
+	app := fiber.New(fiber.Config{
+		Prefork:       true,
+		CaseSensitive: true,
+		StrictRouting: true,
+		ServerHeader:  "Fiber",
+		AppName: "Test App v1.0.1",
+	});
+
+	app.Static("/", "./public")
+
+	app.Get("/fetch-data", func(c *fiber.Ctx) error {
+		// URL dari pihak ketiga (ganti sesuai kebutuhan)
+        fullURL := fmt.Sprintf("%s/cek-saldo", baseURL)
+		// Buat HTTP GET request ke API eksternal
+		resp, err := http.Get(fullURL)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Gagal fetch dari pihak ketiga",
+			})
+		}
+		defer resp.Body.Close()
+
+		// Baca body response
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Gagal membaca response",
+			})
+		}
+
+		// Decode response ke bentuk `interface{}` supaya fleksibel
+		var data interface{}
+		if err := json.Unmarshal(body, &data); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Gagal parsing JSON",
+			})
+		}
+
+		// Kirim kembali data hasil fetch
+		return c.JSON(data)
+	})
+
+
+    log.Fatal(app.Listen(":3000"))
+	// Custom config
+	
+// ...
+
+}
+
