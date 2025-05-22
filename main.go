@@ -43,7 +43,9 @@ func main(){
 	});
 
 	
-    app.Use(cors.New())
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+	}))
 
 	app.Static("/", "./public")
 
