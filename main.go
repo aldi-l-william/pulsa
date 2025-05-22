@@ -21,7 +21,7 @@ func main(){
 	}
 
 	// Ambil base URL dari ENV
-	baseURL := os.Getenv("EXTERNAL_API_BASE_URL")
+	baseURL := os.Getenv("BASE_EXTERNAL_API_URL")
 	if baseURL == "" {
 		log.Fatal("EXTERNAL_API_BASE_URL not set in .env")
 	}
