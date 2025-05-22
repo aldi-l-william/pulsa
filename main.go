@@ -14,6 +14,9 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"strings"
+
+	"github.com/gofiber/fiber/v2/middleware/limiter"
+    "time"
 	
 )
 
@@ -40,7 +43,19 @@ func main(){
 
 	app.Static("/", "./public")
 
-	app.Get("/fetch-data", func(c *fiber.Ctx) error {
+	app.Get("/fetch-data", limiter.New(limiter.Config{
+		Max:        12,                // maksimal 10 request
+		Expiration: 1 * time.Minute,   // dalam waktu 1 menit
+		KeyGenerator: func(c *fiber.Ctx) string {
+			// bisa batasi berdasarkan IP client misalnya
+			return c.IP()
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"error": "Terlalu banyak request, coba lagi nanti.",
+			})
+		},
+    }), func(c *fiber.Ctx) error {
 		// URL dari pihak ketiga (ganti sesuai kebutuhan)
         fullURL := fmt.Sprintf("%s/cek-saldo", baseURL)
 		// Buat HTTP GET request ke API eksternal
