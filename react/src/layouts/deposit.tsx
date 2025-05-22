@@ -10,6 +10,8 @@ const Deposit = () => {
           return response.json();
        }).then(data => {
            useSaldo(data);
+       }).catch(err => {
+          console.log(err);
        })
     },[])
 

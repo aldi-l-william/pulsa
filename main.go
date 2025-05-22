@@ -17,6 +17,7 @@ import (
 
 	"github.com/gofiber/fiber/v2/middleware/limiter"
     "time"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	
 )
 
@@ -40,6 +41,9 @@ func main(){
 		ServerHeader:  "Fiber",
 		AppName: "Test App v1.0.1",
 	});
+
+	
+    app.Use(cors.New())
 
 	app.Static("/", "./public")
 
