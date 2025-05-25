@@ -11,6 +11,8 @@ import Aliases from './layouts/aliases.tsx';
 import Help from './layouts/help.tsx';
 import MailboxUsers from './layouts/mailbox-users.tsx';
 import DashboardTransaksi from './layouts/dashboard-transaksi.tsx';
+import ProtectedRoute from './layouts/protectedlayout.tsx';
+import Login from './layouts/login.tsx';
 
 
 function App() {
@@ -18,7 +20,15 @@ function App() {
     <>
     <BrowserRouter>
     <Routes>
-      <Route path="/" element={<DashboardLayout />}>
+
+      {/* Public route */}
+        <Route path="/login" element={<Login />} />
+
+        <Route path="/" element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+        }>
 
         <Route index element={<DashboardTransaksi />} />
         <Route path="info" element={<Info />} />

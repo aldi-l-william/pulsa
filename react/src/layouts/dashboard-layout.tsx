@@ -1,6 +1,23 @@
 import { Outlet, Link } from 'react-router';
+import { useState } from 'react';
 
 const DashboardLayout = () => {
+
+    const [selectedValue, setSelectedValue] = useState('');
+
+     const handleChange = (event: any) => {
+        const val = event.target.value;
+        setSelectedValue(val);
+        console.log('Yang dipilih:', val);
+
+        if (val === 'logout') {
+            localStorage.setItem('auth', 'false');
+            // Misal redirect ke login setelah logout
+            window.location.href = '/';
+        }
+      };
+
+
     return(
         <>
             <div>
@@ -21,9 +38,10 @@ const DashboardLayout = () => {
                             <div className='flex justify-between items-center px-4 py-2 border-b border-gray-200'>
                                 <div>Dashboard</div>
                                 <div className='flex justify-start gap-4'>
-                                    <select>
-                                        <option>
-                                             Supportke.xyz
+                                    <select value={selectedValue} onChange={handleChange}>
+                                        <option value="">User</option>
+                                        <option value="logout">
+                                             Logout
                                         </option>
                                     </select>
                                     <div>

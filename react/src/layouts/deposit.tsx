@@ -3,13 +3,13 @@ const Deposit = () => {
     const [saldo, useSaldo] = useState('');
 
     useEffect(() => {
-       fetch('http://api.mypulsa.my.id/fetch-data').then((response) => {
+       fetch('https://api.mypulsa.my.id/fetch-data-saldo').then((response) => {
           if (!response.ok) {
             throw new Error('Network response was not ok');
           }
           return response.json();
-       }).then(data => {
-           useSaldo(data);
+       }).then(result => {
+           useSaldo(result.data.deposit);
        }).catch(err => {
           console.log(err);
        })
@@ -17,7 +17,9 @@ const Deposit = () => {
 
     return(
         <>
-          Saldo : Rp { saldo }
+        <div className="px-4">
+            Saldo : Rp { saldo }
+        </div> 
         </>
     );
 }
