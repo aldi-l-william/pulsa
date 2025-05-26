@@ -334,7 +334,7 @@ func main(){
 		return c.JSON(fiber.Map{
 			"message": "Pembelian berhasil dikirim",
 			"ref_id":  invoice.Ref_ID,
-			"data":    data,
+			"result":    data,
 		})
 
 	})
