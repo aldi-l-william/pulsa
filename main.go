@@ -21,8 +21,13 @@ import (
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+
+	jwtware "github.com/gofiber/jwt/v3"
+    "github.com/golang-jwt/jwt/v5"
 	
 )
+
+
 
 // Model
 type Invoice struct {
@@ -48,7 +53,7 @@ func (i *Invoice) BeforeCreate(tx *gorm.DB) (err error) {
 	return nil
 }
 
-
+var jwtSecret []byte
 func main(){
 
 	db, err := gorm.Open(sqlite.Open("mypulsa.db"), &gorm.Config{})
@@ -64,6 +69,8 @@ func main(){
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
+	jwtSecret = []byte(os.Getenv("JWT_SECRET_KEY"))
 
 	// Ambil base URL dari ENV
 	baseURL := os.Getenv("BASE_EXTERNAL_API_URL")
@@ -81,14 +88,20 @@ func main(){
 
 	
 	app.Use(cors.New(cors.Config{
-        AllowOrigins:     "https://mypulsa.my.id",
+        AllowOrigins:     "https://mypulsa.my.id, http://localhost:5173",
         AllowMethods:     "GET,POST,OPTIONS",
         AllowHeaders:     "Content-Type,Authorization",
         AllowCredentials: true,
     }))
 
+	protected := app.Group("/protected")
 
-	app.Get("/fetch-data-saldo", limiter.New(limiter.Config{
+	protected.Use(jwtware.New(jwtware.Config{
+		SigningKey: jwtSecret,
+		TokenLookup: "header:Authorization",
+	}))
+
+	protected.Get("/fetch-data-saldo", limiter.New(limiter.Config{
 		Max:        12,                // maksimal 10 request
 		Expiration: 1 * time.Minute,   // dalam waktu 1 menit
 		KeyGenerator: func(c *fiber.Ctx) string {
@@ -165,7 +178,7 @@ func main(){
 		return c.JSON(data)
 	})
 
-	app.Get("/fetch-data-price-list", limiter.New(limiter.Config{
+	protected.Get("/fetch-data-price-list", limiter.New(limiter.Config{
 		Max:        20,                // maksimal 10 request
 		Expiration: 1 * time.Minute,   // dalam waktu 1 menit
 		KeyGenerator: func(c *fiber.Ctx) string {
@@ -242,7 +255,7 @@ func main(){
 		return c.JSON(data)
 	})
 
-	app.Post("/buy-prepaid", func(c *fiber.Ctx) error {
+	protected.Post("/buy-prepaid", func(c *fiber.Ctx) error {
 
 		var input struct {
 			Buyer_SKU_Code  string `json:"buyer_sku_code"`
@@ -341,6 +354,36 @@ func main(){
 		})
 
 	})
+
+	app.Post("/login", func(c *fiber.Ctx) error {
+	type LoginInput struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	var input LoginInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
+	}
+
+	// Dummy auth
+	if input.Username != "admin" || input.Password != "P@ssw0rd0777..." {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"username": input.Username,
+		"exp":      time.Now().Add(time.Hour * 1).Unix(),
+	})
+
+	t, err := token.SignedString(jwtSecret)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Token error"})
+	}
+
+	   return c.JSON(fiber.Map{"token": t})
+    })
+
 
 
     log.Fatal(app.Listen(":3000"))
