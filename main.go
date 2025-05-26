@@ -81,8 +81,11 @@ func main(){
 
 	
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-	}))
+        AllowOrigins:     "https://mypulsa.my.id",
+        AllowMethods:     "GET,POST,OPTIONS",
+        AllowHeaders:     "Content-Type,Authorization",
+        AllowCredentials: true,
+    }))
 
 
 	app.Get("/fetch-data-saldo", limiter.New(limiter.Config{
