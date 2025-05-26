@@ -71,6 +71,10 @@ func main(){
 	}
 
 	jwtSecret = []byte(os.Getenv("JWT_SECRET_KEY"))
+	if len(jwtSecret) == 0 {
+		log.Fatal("JWT_SECRET_KEY not found in .env")
+	}
+	
 
 	// Ambil base URL dari ENV
 	baseURL := os.Getenv("BASE_EXTERNAL_API_URL")
@@ -101,7 +105,7 @@ func main(){
 		TokenLookup: "header:Authorization",
 	}))
 
-	protected.Post("/fetch-data-saldo", limiter.New(limiter.Config{
+	protected.GET("/fetch-data-saldo", limiter.New(limiter.Config{
 		Max:        12,                // maksimal 10 request
 		Expiration: 1 * time.Minute,   // dalam waktu 1 menit
 		KeyGenerator: func(c *fiber.Ctx) string {
@@ -178,7 +182,7 @@ func main(){
 		return c.JSON(data)
 	})
 
-	protected.Post("/fetch-data-price-list", limiter.New(limiter.Config{
+	protected.GET("/fetch-data-price-list", limiter.New(limiter.Config{
 		Max:        20,                // maksimal 10 request
 		Expiration: 1 * time.Minute,   // dalam waktu 1 menit
 		KeyGenerator: func(c *fiber.Ctx) string {

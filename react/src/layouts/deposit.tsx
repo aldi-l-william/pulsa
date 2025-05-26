@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import api from "../services/api";
 const Deposit = () => {
     const [saldo, setSaldo] = useState('');
-    
-
     useEffect(() => {
         const fetchSaldo = async () => {
             try {
@@ -13,7 +11,6 @@ const Deposit = () => {
                 alert('Gagal ambil saldo: ' + err.response?.data?.error);
             }
         };
-
         fetchSaldo();
     },[saldo])
 
