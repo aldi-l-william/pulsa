@@ -283,7 +283,7 @@ func main(){
 			"buyer_sku_code": input.Buyer_SKU_Code,
 			"customer_no": input.Customer_number,
 			"ref_id": invoice.Ref_ID,
-			"testing": true
+			"testing": true,
 		}
 
 		jsonBody, err := json.Marshal(payloadMap)
