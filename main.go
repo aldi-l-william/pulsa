@@ -105,7 +105,7 @@ func main(){
 		TokenLookup: "header:Authorization",
 	}))
 
-	protected.GET("/fetch-data-saldo", limiter.New(limiter.Config{
+	protected.Get("/fetch-data-saldo", limiter.New(limiter.Config{
 		Max:        12,                // maksimal 10 request
 		Expiration: 1 * time.Minute,   // dalam waktu 1 menit
 		KeyGenerator: func(c *fiber.Ctx) string {
@@ -182,7 +182,7 @@ func main(){
 		return c.JSON(data)
 	})
 
-	protected.GET("/fetch-data-price-list", limiter.New(limiter.Config{
+	protected.Get("/fetch-data-price-list", limiter.New(limiter.Config{
 		Max:        20,                // maksimal 10 request
 		Expiration: 1 * time.Minute,   // dalam waktu 1 menit
 		KeyGenerator: func(c *fiber.Ctx) string {
