@@ -277,7 +277,7 @@ func main(){
 		md5Str := hex.EncodeToString(hash[:])
 
 		// Buat payload JSON secara dinamis
-		payloadMap := map[string]interface{
+		payloadMap := map[string]interface{}{
 			"username": username,
 			"sign":     md5Str,
 			"buyer_sku_code": input.Buyer_SKU_Code,
