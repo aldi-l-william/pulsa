@@ -18,10 +18,47 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
     "time"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 	
 )
 
+// Model
+type Invoice struct {
+	ID              uint      `json:"id" gorm:"primaryKey"`
+	Ref_ID          string    `json:"ref_id"`
+	Buyer_SKU_Code  string    `json:"buyer_sku_code"`
+	Customer_number string    `json:"customer_number"`
+	CreatedAt       time.Time
+}
+
+func (i *Invoice) BeforeCreate(tx *gorm.DB) (err error) {
+	today := time.Now().Format("2006-01-02") // Contoh: 2025-05-26
+
+	var count int64
+	tx.Model(&Invoice{}).
+		Where("date(created_at) = date(?)", today).
+		Count(&count)
+
+	seq := count + 1
+	refID := fmt.Sprintf("INV%s-%03d", today, seq)
+	i.Ref_ID = refID
+
+	return nil
+}
+
+
 func main(){
+
+	db, err := gorm.Open(sqlite.Open("mypulsa.db"), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
+
+	// Auto-migrate untuk membuat tabel jika belum ada
+	db.AutoMigrate(&Invoice{})
+
 
 	// Load .env
 	if err := godotenv.Load(); err != nil {
@@ -204,6 +241,106 @@ func main(){
 		return c.JSON(data)
 	})
 
+	app.Post("/buy-prepaid", func(c *fiber.Ctx) error {
+
+		var input struct {
+			Buyer_SKU_Code  string `json:"buyer_sku_code"`
+			Customer_number string `json:"customer_number"`
+		}
+
+		if err := c.BodyParser(&input); err != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"error": "Invalid request body",
+			})
+		}
+
+		// STEP 2: Buat invoice dari input client
+		invoice := Invoice{
+			Buyer_SKU_Code:  input.Buyer_SKU_Code,
+			Customer_number: input.Customer_number,
+		}
+
+		if err := db.Create(&invoice).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Gagal menyimpan invoice",
+			})
+		}
+
+        fmt.Println("Ref ID:", invoice.Ref_ID)
+
+		fullURL := fmt.Sprintf("%s/transaction", baseURL)
+		apiSecret := os.Getenv("SECRET_API_KEY")
+		username := os.Getenv("USERNAME")
+
+		raw := username + apiSecret + invoice.Ref_ID
+		hash := md5.Sum([]byte(raw))
+		md5Str := hex.EncodeToString(hash[:])
+
+		// Buat payload JSON secara dinamis
+		payloadMap := map[string]interface{
+			"username": username,
+			"sign":     md5Str,
+			"buyer_sku_code": input.Buyer_SKU_Code,
+			"customer_no": input.Customer_number,
+			"ref_id": invoice.Ref_ID,
+			"testing": true
+		}
+
+		jsonBody, err := json.Marshal(payloadMap)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Gagal membuat JSON",
+			})
+		}
+
+		// Buat request POST
+		req, err := http.NewRequest("POST", fullURL, strings.NewReader(string(jsonBody)))
+			if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Gagal membuat request POST",
+			})
+		}
+
+		// Set header (optional)
+		req.Header.Set("Content-Type", "application/json")
+
+		// Kirim request
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Gagal mengirim request POST",
+			})
+		}
+		defer resp.Body.Close()
+
+		// Baca body response
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Gagal membaca response",
+			})
+		}
+
+		// Decode response ke bentuk `interface{}` supaya fleksibel
+		var data interface{}
+		if err := json.Unmarshal(body, &data); err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Gagal parsing JSON",
+			})
+		}
+
+		// Kirim kembali data hasil fetch
+		// return c.JSON(data)// e.g. INV2025-05-26-001
+
+		return c.JSON(fiber.Map{
+			"message": "Pembelian berhasil dikirim",
+			"ref_id":  invoice.Ref_ID,
+			"data":    data,
+		})
+
+	})
+
 
     log.Fatal(app.Listen(":3000"))
 	// Custom config
@@ -211,4 +348,7 @@ func main(){
 // ...
 
 }
+
+
+
 

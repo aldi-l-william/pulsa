@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 const Deposit = () => {
-    const [saldo, useSaldo] = useState('');
+    const [saldo, setSaldo] = useState('');
+    
 
     useEffect(() => {
        fetch('https://api.mypulsa.my.id/fetch-data-saldo').then((response) => {
@@ -9,11 +10,11 @@ const Deposit = () => {
           }
           return response.json();
        }).then(result => {
-           useSaldo(result.data.deposit);
+          setSaldo(result.data.deposit);
        }).catch(err => {
           console.log(err);
        })
-    },[])
+    },[saldo])
 
     return(
         <>
