@@ -84,8 +84,6 @@ func main(){
 		AllowOrigins: "*",
 	}))
 
-	app.Static("/", "./react/dist")
-    app.Static("/", "./react/dist/assets")
 
 	app.Get("/fetch-data-saldo", limiter.New(limiter.Config{
 		Max:        12,                // maksimal 10 request
@@ -246,6 +244,12 @@ func main(){
 		var input struct {
 			Buyer_SKU_Code  string `json:"buyer_sku_code"`
 			Customer_number string `json:"customer_number"`
+		}
+
+		if input.Buyer_SKU_Code == "" || input.Customer_number == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Semua field wajib diisi",
+			})
 		}
 
 		if err := c.BodyParser(&input); err != nil {
