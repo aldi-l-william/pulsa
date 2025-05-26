@@ -246,12 +246,6 @@ func main(){
 			Customer_number string `json:"customer_number"`
 		}
 
-		if input.Buyer_SKU_Code == "" || input.Customer_number == "" {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Semua field wajib diisi",
-			})
-		}
-
 		if err := c.BodyParser(&input); err != nil {
 			return c.Status(400).JSON(fiber.Map{
 				"error": "Invalid request body",
