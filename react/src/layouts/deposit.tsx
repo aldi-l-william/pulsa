@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react";
+import api from "../services/api";
 const Deposit = () => {
     const [saldo, setSaldo] = useState('');
     
 
     useEffect(() => {
-       fetch('https://api.mypulsa.my.id/fetch-data-saldo').then((response) => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-       }).then(result => {
-          setSaldo(result.data.deposit);
-       }).catch(err => {
-          console.log(err);
-       })
+        const fetchSaldo = async () => {
+            try {
+                const res = await api.get('/protected/fetch-data-saldo'); 
+                setSaldo(res.data.deposit);
+            } catch (err: any) {
+                alert('Gagal ambil saldo: ' + err.response?.data?.error);
+            }
+        };
+
+        fetchSaldo();
     },[saldo])
 
     return(

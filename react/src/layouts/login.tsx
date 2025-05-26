@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import api from '../services/api';
 
 function Login() {
   const [form, setForm] = useState({ username: '', password: '' });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -11,13 +13,19 @@ function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Dummy auth: anggap login sukses
-    if (form.username === 'admin' && form.password === '1234') {
-      localStorage.setItem('auth', 'true'); // simpan auth state
-      navigate('/'); // redirect ke dashboard
-    } else {
-      alert('Login gagal');
+    if (!form.username || !form.password) {
+      return alert('Username dan password wajib diisi');
+    }
+    try {
+      setLoading(true);
+      const res = await api.post('/login', { username:form.username, password:form.password });
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('auth', 'true');
+      navigate('/');
+    } catch (err:any) {
+      alert('Login gagal: ' + err.response?.data?.error);
+    } finally {
+      setLoading(false);
     }
   };
 
