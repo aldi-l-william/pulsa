@@ -371,11 +371,11 @@ func main(){
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"name": input.Username,
-		"admin":true,
+		"admin": true,
 		"exp":      time.Now().Add(time.Hour * 1).Unix(),
 	})
 
-	t, err := token.SignedString(jwtSecret)
+	t, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Token error"})
 	}
