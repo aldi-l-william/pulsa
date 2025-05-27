@@ -4,7 +4,7 @@ import api from '../services/api';
 
 function Login() {
   const [form, setForm] = useState({ username: '', password: '' });
-  const [loading, setLoading] = useState(false);
+  const [_, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

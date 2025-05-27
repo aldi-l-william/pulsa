@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import api from "../services/api";
 const DashboardTransaksi = () => {
     const [pricelist, setPriceList] = useState<[]>([]);
     const [loading, setLoading] = useState(true);
@@ -11,44 +12,34 @@ const DashboardTransaksi = () => {
 
     const fetchedRef = useRef(false);
 
-    const buyProduct = () => {
-        fetch("https://api.mypulsa.my.id/buy-prepaid", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                buyer_sku_code: itemList.buyer_sku_code,
-                customer_number: customerNumberInput  // pakai state nomor customer
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log("Berhasil:", data);
+    const buyProduct = async() => {
+        try {
+            const res = await api.post('/buy-prepaid', { buyer_sku_code: itemList.buyer_sku_code,
+                    customer_number: customerNumberInput });
+            console.log(res, "res data");
             // Bisa reset nomor customer input setelah berhasil beli
             setCustomerNumberInput("");
             setShowDialog(false); // tutup dialog jika mau
-        })
-        .catch(error => {
-            console.error("Gagal:", error);
-        });
+        } catch (err:any) {
+            console.error("Gagal:", err);
+        }
+
     }
 
     useEffect(() => {
         if (fetchedRef.current) return; // cegah double fetch
         fetchedRef.current = true;
-        fetch('https://api.mypulsa.my.id/fetch-data-price-list').then((response) => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+         const fetchSaldo = async () => {
+            try {
+                const res = await api.get('/fetch-data-price-list'); 
+                setPriceList(res.data.data);
+                setLoading(false);
+            } catch (err: any) {
+               setError(err.message);
+               setLoading(false);
             }
-            return response.json();
-        }).then(result => {
-            setPriceList(result.data);
-            setLoading(false);
-        }).catch(err => {
-            setError(err.message);
-            setLoading(false);
-        })
+        };
+        fetchSaldo();
     }, [])
 
     return(

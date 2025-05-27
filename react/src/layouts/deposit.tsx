@@ -5,8 +5,8 @@ const Deposit = () => {
     useEffect(() => {
         const fetchSaldo = async () => {
             try {
-                const res = await api.get('/protected/fetch-data-saldo'); 
-                setSaldo(res.data.deposit);
+                const res = await api.get('/fetch-data-saldo'); 
+                setSaldo(res.data.data.deposit);
             } catch (err: any) {
                 alert('Gagal ambil saldo: ' + err.response?.data?.error);
             }
