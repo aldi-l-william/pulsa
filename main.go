@@ -22,7 +22,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	jwtware "github.com/gofiber/contrib/jwt"
+	"github.com/gofiber/contrib/jwt"
     "github.com/golang-jwt/jwt/v5"
 	
 )
