@@ -12,6 +12,7 @@ const DashboardLayout = () => {
 
         if (val === 'logout') {
             localStorage.setItem('auth', 'false');
+            localStorage.removeItem('token');
             // Misal redirect ke login setelah logout
             window.location.href = '/';
         }

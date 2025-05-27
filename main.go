@@ -22,7 +22,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	jwtware "github.com/gofiber/jwt/v3"
+	jwtware "github.com/gofiber/contrib/jwt"
     "github.com/golang-jwt/jwt/v5"
 	
 )
@@ -68,13 +68,7 @@ func main(){
 	// Load .env
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
-	}
-
-	jwtSecret = []byte(os.Getenv("JWT_SECRET_KEY"))
-	if len(jwtSecret) == 0 {
-		log.Fatal("JWT_SECRET_KEY not found in .env")
-	}
-	
+	}	
 
 	// Ambil base URL dari ENV
 	baseURL := os.Getenv("BASE_EXTERNAL_API_URL")
@@ -101,7 +95,7 @@ func main(){
 	protected := app.Group("/protected")
 
 	protected.Use(jwtware.New(jwtware.Config{
-		SigningKey: jwtSecret,
+		SigningKey: jwtware.SigningKey{Key: []byte(os.Getenv("JWT_SECRET_KEY"))},
 		TokenLookup: "header:Authorization",
 	}))
 
@@ -376,7 +370,8 @@ func main(){
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"username": input.Username,
+		"name": input.Username,
+		"admin":true,
 		"exp":      time.Now().Add(time.Hour * 1).Unix(),
 	})
 
