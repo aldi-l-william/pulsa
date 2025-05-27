@@ -54,6 +54,7 @@ func (i *Invoice) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 var jwtSecret []byte
+
 func main(){
 
 	db, err := gorm.Open(sqlite.Open("mypulsa.db"), &gorm.Config{})
@@ -92,14 +93,8 @@ func main(){
         AllowCredentials: true,
     }))
 
-	protected := app.Group("/protected")
-
-	protected.Use(jwtware.New(jwtware.Config{
-		SigningKey: jwtware.SigningKey{Key: []byte(os.Getenv("JWT_SECRET_KEY"))},
-		TokenLookup: "header:Authorization",
-	}))
-
-	protected.Get("/fetch-data-saldo", limiter.New(limiter.Config{
+	
+	app.Get("/fetch-data-saldo", JWTMiddleware, limiter.New(limiter.Config{
 		Max:        12,                // maksimal 10 request
 		Expiration: 1 * time.Minute,   // dalam waktu 1 menit
 		KeyGenerator: func(c *fiber.Ctx) string {
@@ -176,7 +171,7 @@ func main(){
 		return c.JSON(data)
 	})
 
-	protected.Get("/fetch-data-price-list", limiter.New(limiter.Config{
+	app.Get("/fetch-data-price-list", JWTMiddleware, limiter.New(limiter.Config{
 		Max:        20,                // maksimal 10 request
 		Expiration: 1 * time.Minute,   // dalam waktu 1 menit
 		KeyGenerator: func(c *fiber.Ctx) string {
@@ -253,7 +248,7 @@ func main(){
 		return c.JSON(data)
 	})
 
-	protected.Post("/buy-prepaid", func(c *fiber.Ctx) error {
+	app.Post("/buy-prepaid", JWTMiddleware, func(c *fiber.Ctx) error {
 
 		var input struct {
 			Buyer_SKU_Code  string `json:"buyer_sku_code"`
@@ -375,7 +370,9 @@ func main(){
 		"exp":      time.Now().Add(time.Hour * 1).Unix(),
 	})
 
-	t, err := token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
+	jwtSecret = []byte(os.Getenv("JWT_SECRET_KEY"))
+
+	t, err := token.SignedString(jwtSecret)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Token error"})
 	}
@@ -390,6 +387,47 @@ func main(){
 	
 // ...
 
+}
+
+func JWTMiddleware(c *fiber.Ctx) error {
+    // Ambil header Authorization
+    authHeader := c.Get("Authorization")
+    if authHeader == "" {
+        return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+            "error": "Missing Authorization header",
+        })
+    }
+
+    // Pecah "Bearer <token>"
+    parts := strings.Split(authHeader, " ")
+    if len(parts) != 2 || parts[0] != "Bearer" {
+        return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+            "error": "Invalid Authorization header format",
+        })
+    }
+
+    tokenString := parts[1]
+
+    // Parse token
+    token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+        // Validasi algoritma token
+        if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+            return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+        }
+        return jwtSecret, nil
+    })
+
+    if err != nil || !token.Valid {
+        return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+            "error": "Invalid or expired token",
+        })
+    }
+
+    // Simpan claims ke context (jika perlu)
+    claims := token.Claims.(jwt.MapClaims)
+    c.Locals("user", claims)
+
+    return c.Next()
 }
 
 
