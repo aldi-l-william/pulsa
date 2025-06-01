@@ -37,7 +37,7 @@ function Login() {
         <br />
         <input name="password" type="password" onChange={handleChange} placeholder="Password" className='px-4 py-2 border border-black mb-4' />
         <br />
-        <button type="submit" className='px-4 py-2 bg-blue-500 text-white'>Login</button>
+        <button type="submit" className='px-4 py-2 bg-blue-500 text-white cursor-pointer'>Login</button>
         </form>
     </div>
   );
