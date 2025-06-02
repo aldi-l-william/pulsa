@@ -5,7 +5,7 @@ const DashboardLayout = () => {
 
     const [selectedValue, setSelectedValue] = useState('');
 
-     const handleChange = (event: any) => {
+    const handleChange = (event: any) => {
         const val = event.target.value;
         setSelectedValue(val);
 
@@ -15,7 +15,7 @@ const DashboardLayout = () => {
             // Misal redirect ke login setelah logout
             window.location.href = '/';
         }
-      };
+    };
 
 
     return(

@@ -8,6 +8,7 @@ const DashboardTransaksi = () => {
     const [itemList, setItemList] = useState<any>(null);
     const [successlist, setSuccessList] = useState<any>(null);
     const [isSuccessList, setIsSuccessList] = useState<boolean>(false);
+    const [yes, setYes] = useState(false)
 
     // Tambahkan state untuk nomor customer inputan
     const [customerNumberInput, setCustomerNumberInput] = useState("");
@@ -28,6 +29,11 @@ const DashboardTransaksi = () => {
             console.error("Gagal:", err);
         }
 
+    }
+
+    const dialogYesOrNo = () => {
+        setYes(true);
+        setShowDialog(false);
     }
 
     useEffect(() => {
@@ -83,6 +89,35 @@ const DashboardTransaksi = () => {
                     </div>    
                 )}
 
+                {yes && (
+                   <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black/30 z-50">
+                        <div className="border border-black p-4 bg-white rounded shadow">
+                            <div className="flex justify-between items-center mb-6">
+                                <div>Konfirmasi ?</div>
+                                <div
+                                    onClick={() => {
+                                        setYes(false);
+                                        setCustomerNumberInput(""); // reset input saat tutup
+                                    }}
+                                    className="bg-gray-400 rounded-full px-3 py-1 cursor-pointer text-white">x</div>
+                            </div>
+                            <div className="flex justify-between gap-8">
+                                <button 
+                                onClick={() => {
+                                    buyProduct();
+                                }} 
+                                className="bg-blue-500 px-4 py-2 rounded text-white cursor-pointer">Ya</button>
+
+                                <button
+                                onClick={() => {
+                                    setYes(false);
+                                }} 
+                                className="bg-red-500 px-4 py-2 rounded text-white cursor-pointer">Tidak</button>
+                            </div>
+                        </div>
+                   </div> 
+                )}
+
                 {showDialog && (
                     <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black/30 z-50">
                         <div className="border border-black p-4 bg-white rounded shadow">
@@ -106,7 +141,7 @@ const DashboardTransaksi = () => {
                             />
                             <button 
                                 onClick={() => {
-                                    buyProduct();
+                                    dialogYesOrNo();
                                 }}
                                 className="px-4 py-2 bg-blue-500 text-white rounded cursor-pointer w-full">
                                 Beli
