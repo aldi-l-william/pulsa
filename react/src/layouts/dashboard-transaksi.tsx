@@ -24,7 +24,8 @@ const DashboardTransaksi = () => {
             setSuccessList(res.data.result);
             // Bisa reset nomor customer input setelah berhasil beli
             setCustomerNumberInput("");
-            setShowDialog(false); // tutup dialog jika mau
+            setShowDialog(false);
+             // tutup dialog jika mau
         } catch (err:any) {
             console.error("Gagal:", err);
         }
@@ -105,6 +106,7 @@ const DashboardTransaksi = () => {
                                 <button 
                                 onClick={() => {
                                     buyProduct();
+                                    setYes(false);
                                 }} 
                                 className="bg-blue-500 px-4 py-2 rounded text-white cursor-pointer">Ya</button>
 
