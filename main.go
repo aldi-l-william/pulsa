@@ -86,7 +86,7 @@ func main(){
 
 	
 	app.Use(cors.New(cors.Config{
-        AllowOrigins:     "https://mypulsa.my.id, http://localhost:5173",
+        AllowOrigins:     "https://rumahprofit.my.id, http://localhost:5173",
         AllowMethods:     "GET,POST,OPTIONS",
         AllowHeaders:     "Content-Type,Authorization",
         AllowCredentials: true,
