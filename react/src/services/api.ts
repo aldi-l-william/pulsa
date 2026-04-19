@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://rumahprofit.my.id', // ganti sesuai domain API kamu
+  baseURL: 'https://api.rumahprofit.my.id', // ganti sesuai domain API kamu
   withCredentials: false,
 });
 
